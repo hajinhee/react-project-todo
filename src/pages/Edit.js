@@ -72,8 +72,7 @@ export function Drawer({ status }) {
 }
 
 function Edit() {
-  console.log("Edit");
-  const { id } = useParams();
+  const { no } = useParams();
   const todosStatus = useTodosStatus();
   const snackbarStatus = useSnackBarStatus();
 
@@ -97,22 +96,19 @@ function Edit() {
     }
 
     todosStatus.modifyTodo(
-      Number(id),
+      Number(no),
       form.performDate.value,
       form.content.value
     );
     form.performDate.value = "";
     form.content.value = "";
 
-    snackbarStatus.open(`${id}번 할일이 수정되었습니다.`);
+    snackbarStatus.open(`${no}번 할일이 수정되었습니다.`);
 
     navigate(-1); // 메인 페이지로 이동
   };
 
-  // 기존 작성 기록
-  const beforeTodo = todosStatus.todos.find((el) => el.id === id);
-  const beforeRegDate = beforeTodo?.performDate;
-  const beforeContent = beforeTodo?.content;
+  const beforeTodo = todosStatus.todos.find((el) => el.no === Number(no));
 
   return (
     <>
@@ -122,7 +118,7 @@ function Edit() {
           label="언제 해야 하나요?"
           focused
           type="datetime-local"
-          defaultValue={beforeRegDate}
+          defaultValue={beforeTodo?.performDate}
         ></TextField>
         <TextField
           name="content"
@@ -130,8 +126,9 @@ function Edit() {
           type="text"
           className="flex-1"
           multiline
+          defaultValue={beforeTodo?.content}
           InputProps={{ className: "flex-1 flex-col" }}
-          defaultValue={beforeContent}
+          data-shrink="true"
         ></TextField>
         <Button variant="contained" type="submit">
           <span className="pt-1">✏️&nbsp;할일 수정 </span>

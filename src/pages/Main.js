@@ -40,7 +40,7 @@ function TodoListItem({ todo, drawer, toggleCheckBox }) {
     <>
       <div className="flex gap-1 py-3">
         <Chip
-          label={`No.${todo.id}`}
+          label={`No.${todo.no}`}
           variant="contained"
           color="primary"
           className="!pt-1"
@@ -55,7 +55,7 @@ function TodoListItem({ todo, drawer, toggleCheckBox }) {
         <Button
           className="!rounded-l-2xl flex-shrink-0 flex !items-start"
           color="inherit"
-          onClick={() => toggleCheckBox(todo.id)}
+          onClick={() => toggleCheckBox(todo.no)}
         >
           <span
             className={classNames(
@@ -82,7 +82,7 @@ function TodoListItem({ todo, drawer, toggleCheckBox }) {
         <Button
           className="!rounded-r-2xl flex-shrink-0 flex !items-start"
           color="inherit"
-          onClick={() => drawer.open(todo.id)}
+          onClick={() => drawer.open(todo.no)}
         >
           <span className="text-2xl sm:text-3xl h-[60px] sm:h-[80px] flex items-center text-[#dcdcdc]">
             <i className="fa-solid fa-ellipsis-vertical"></i>
@@ -123,7 +123,7 @@ function TodoList() {
           ? performDateA - performDateB
           : sortIndex === 1
           ? performDateB - performDateA
-          : sortIndex === 2
+          : sortIndex === 3
           ? regDateA - regDateB
           : regDateB - regDateA;
       }),

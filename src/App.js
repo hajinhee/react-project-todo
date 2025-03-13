@@ -54,7 +54,7 @@ function App() {
       <Routes>
         <Route path="/main" element={<Main />} />
         <Route path="/write" element={<Write />} />
-        <Route path="/edit/:id" element={<Edit />} />
+        <Route path="/edit/:no" element={<Edit />} />
         <Route path="*" element={<Navigate to="/main" />} />
       </Routes>
     </>

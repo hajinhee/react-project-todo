@@ -7,98 +7,99 @@ export function useTodosStatus() {
   const [todos, setTodos] = useRecoilState(todosAtom);
 
   useEffect(() => {
-    fetch(`${config.FLASK_URL}/todos`, { method: "GET" })
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchTodos = async () => {
+      try {
+        const res = await fetch(`${config.FLASK_URL}/todos`);
+        if (!res.ok) throw new Error("Failed to fetch todos");
+
+        const data = await res.json();
         const newTodos = data.map((el) => ({
-          id: el.no,
+          no: el.no,
           content: el.content,
           regDate: el.reg_date,
           performDate: el.perform_date,
           checked: el.is_completed,
         }));
         setTodos(newTodos);
-      })
-      .catch((error) => {
-        console.log("error: ", error);
-      });
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+
+    fetchTodos();
   }, []);
 
   // 할일 추가
-  const addTodo = (performDate, newContent) => {
-    const id = todos.length === 0 ? 1 : todos[0].id + 1;
-    const newTodos = {
-      id: id,
+  const addTodo = async (performDate, newContent) => {
+    let no = todos.length === 0 ? 1 : todos[todos.length - 1].no + 1;
+    const newTodo = {
+      no,
       content: newContent,
       regDate: new Date().toISOString(),
       performDate: performDate,
       checked: false,
     };
-
-    console.log("newTodos: ", newTodos);
-    fetch(`${config.FLASK_URL}/todos/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(newTodos),
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        const newTodos = data.map((el) => ({
-          id: el.no,
-          content: el.content,
-          regDate: el.reg_date,
-          performDate: el.perform_date,
-          checked: el.is_completed,
-        }));
-        setTodos(newTodos);
-      })
-      .catch((error) => {
-        console.log("Error: ", error);
+    try {
+      const res = await fetch(`${config.FLASK_URL}/todos/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTodo),
       });
-    setTodos((todos) => [newTodos, ...todos]);
 
-    return id;
+      if (!res.ok) throw new Error("Failed to add todo");
+      // setTodos((prevTodos) => [newTodo, ...prevTodos]);
+      setTodos((prevTodos) => [...prevTodos, newTodo]);
+    } catch (error) {
+      console.error("Error adding todo:", error);
+    }
   };
 
   // 할일 삭제
-  const deleteTodo = (id) => {
-    const newTodos = todos.filter((el, _) => id !== el.id);
-    setTodos(newTodos);
+  const deleteTodo = async (no) => {
+    try {
+      const res = await fetch(`${config.FLASK_URL}/todos/${no}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!res.ok) throw new Error("Failed to delete todo");
+
+      setTodos((prevTodos) => prevTodos.filter((todo) => todo.no !== no));
+    } catch (error) {
+      console.error("Error deleting todo:", error);
+    }
+  };
+
+  // 수정 함수
+  const updateTodo = async (no, updatedFields) => {
+    try {
+      const res = await fetch(`${config.FLASK_URL}/todos/${no}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedFields),
+      });
+
+      if (!res.ok) throw new Error("Failed to update todo");
+
+      setTodos((prevTodos) =>
+        prevTodos.map((el) => (el.no === no ? { ...el, ...updatedFields } : el))
+      );
+    } catch (error) {
+      console.error("Error updating todo:", error);
+    }
   };
 
   // 할일 수정
-  const modifyTodo = (id, performDate, newContent) => {
-    const newTodos = todos.map((el) =>
-      el.id === id
-        ? {
-            ...el,
-            performDate: performDate,
-            content: newContent,
-          }
-        : el
-    );
-
-    setTodos(newTodos);
+  const modifyTodo = async (no, performDate, newContent) => {
+    await updateTodo(no, { performDate, content: newContent });
   };
 
-  const toggleCheckBox = (id) => {
-    const newTodos = todos.map((el) =>
-      el.id === id
-        ? {
-            ...el,
-            checked: !el.checked,
-          }
-        : el
-    );
+  // 체크박스 수정
+  const toggleCheckBox = async (no) => {
+    const todo = todos.find((el) => el.no === no);
+    if (!todo) return;
 
-    setTodos(newTodos);
+    await updateTodo(no, { checked: !todo.checked });
   };
 
   return {

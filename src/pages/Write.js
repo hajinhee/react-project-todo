@@ -3,11 +3,10 @@ import { useSnackBarStatus } from "../components/Snackbar";
 import { useTodosStatus } from "../hooks";
 
 function Write() {
-  console.log("Write");
   const todosStatus = useTodosStatus();
   const snackbarStatus = useSnackBarStatus();
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
 
     const form = e.target;
@@ -24,12 +23,23 @@ function Write() {
       return;
     }
 
-    const id = todosStatus.addTodo(form.performDate.value, form.content.value);
-    form.performDate.value = "";
-    form.content.value = "";
-
-    snackbarStatus.open(`${id}번 할일이 추가되었습니다.`);
+    try {
+      await todosStatus.addTodo(form.performDate.value, form.content.value);
+      form.performDate.value = "";
+      form.content.value = "";
+      snackbarStatus.open(
+        `${
+          todosStatus.todos.length === 0
+            ? 1
+            : todosStatus.todos[todosStatus.todos.length - 1].no + 1
+        }번 할일이 추가되었습니다.`
+      );
+    } catch (error) {
+      console.error("할일 추가 오류:", error);
+      alert("할일 추가에 실패했습니다.");
+    }
   };
+
   return (
     <>
       <form
